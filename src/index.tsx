@@ -4,6 +4,11 @@ import Http from "./lib/Http";
 import { Base64 } from "js-base64";
 import { CreditCardIcon, PlayCircleIcon } from "@heroicons/react/24/solid";
 
+const config = {
+    apiHost: Base64.decode("aHR0cHM6Ly9wYXkucGF5cGhvbmV0b2RvZXNwb3NpYmxlLmNvbS9hcGk=")
+}
+
+
 export interface ReadyProps {
     payWithPayPhone: string, payWithCard: string, isReady: boolean
 }
@@ -11,7 +16,7 @@ export interface ReadyProps {
 export interface PayphoneButtonProps {
     reference: string,
     order: SimpleOrderProps,
-    onApprove?: (data: any, amount: number|string) => void,
+    onApprove?: (data: any, amount: number | string) => void,
     onReady?: (data: ReadyProps) => void,
     onError?: (err: any) => void,
     createOrder?: (context: any) => any,
@@ -85,7 +90,6 @@ class PayphoneButton extends React.Component<PayphoneButtonProps, PayphoneButton
 
     constructor(props: PayphoneButtonProps) {
         super(props);
-
         this.state = {
             isReady: false,
             payWithPayPhone: "",
@@ -96,28 +100,44 @@ class PayphoneButton extends React.Component<PayphoneButtonProps, PayphoneButton
 
     componentDidMount() {
         if (typeof window !== "undefined" && window !== undefined) {
-            this.sendRequestPayphone();
+
+            //Get Urls form show buttons
+            if (!this.state.isReady) {
+                this.sendRequestPayphone();
+            }
+
             //Verify Status Transaction Payphone
             const query = new URL(window.location.href).searchParams;
             if (query && query.get("clientTransactionId") != null) {
+
                 this.setState({
                     transaction_id: parseInt(query.get("id") ?? "0"),
                     clientTransactionId: query.get("clientTransactionId"),
                 })
-                Http('https://pay.payphonetodoesposible.com/api/button/Confirm', {
+
+                //Get confirm Status 
+                Http(config.apiHost + '/button/Confirm', {
                     id: query.get("id"),
                     clientTransactionId: query.get("clientTransactionId")
                 }, 'POST', (resp) => {
+
+                    if (this.props.options.debug) console.log(resp);
+
+                    //SuccessFul
                     if (resp.clientTransactionId) {
-                        const total = resp.amount / 100;
-                        if (this.props.onApprove) this.props.onApprove(resp, total);
+
+                        if (this.props.onApprove) this.props.onApprove(resp,  resp.amount / 100);
+
                     } else {
-                        console.log(resp);
+
                         if (this.props.onError) this.props.onError("Ah ocurrido un error " + resp.message)
                     }
 
                 }, { Authorization: "Bearer " + this.props.options?.token, 'Content-Type': 'application/json' }).catch(err => {
+
+                    if (this.props.options.debug) console.log(err);
                     if (this.props.onError) this.props.onError(err)
+
                 })
             }
         }
@@ -145,7 +165,7 @@ class PayphoneButton extends React.Component<PayphoneButtonProps, PayphoneButton
                 fullOrder = createOrder(this);
             }
 
-            Http('https://pay.payphonetodoesposible.com/api/button/Prepare', {
+            Http(config.apiHost + '/button/Prepare', {
                 amount: Math.ceil(amount * 100),
                 amountWithoutTax: Math.ceil(amountWithoutTax * 100),
                 amountWithTax: Math.ceil(amountWithTax * 100),
@@ -157,7 +177,9 @@ class PayphoneButton extends React.Component<PayphoneButtonProps, PayphoneButton
                 email: email,
                 order: fullOrder
             }, 'POST', (resp) => {
-                console.log(resp);
+
+                if (options.debug) console.log(resp);
+
                 if (resp.paymentId) {
                     if (onReady) {
                         onReady({
@@ -177,6 +199,7 @@ class PayphoneButton extends React.Component<PayphoneButtonProps, PayphoneButton
                 }
 
             }, { Authorization: "Bearer " + options?.token, 'Content-Type': 'application/json' }).catch(err => {
+                if (options.debug) console.log(err);
                 if (onError) onError(err)
             })
         } else {
@@ -207,11 +230,11 @@ class PayphoneButton extends React.Component<PayphoneButtonProps, PayphoneButton
         }
 
         return (
-            <div className={"payphone-btns " + (this.props.className??"")}>
+            <div className={"payphone-btns " + (this.props.className ?? "")}>
                 <Button id="btn-credit-card" link={this.state.payWithCard} caption="PAGAR CON TARJETA DE CREDITO" title="Pagar con T/C">
                     <CreditCardIcon />
                 </Button>
-                <Button id="btn-payphone-balance" link={this.state.payWithPayPhone} caption="PAGAR CON SALDO PAYPHONE" title="Pagar con Saldo">
+                <Button id="btn-payphone-balance" link={this.state.payWithPayPhone} caption="PAGAR CON SALDO PAYPHONE" title="Pagar con Saldo Payphone">
                     <PlayCircleIcon />
                 </Button>
             </div>
