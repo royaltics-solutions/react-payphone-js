@@ -4,16 +4,17 @@ import Http from "./lib/Http";
 import { Base64 } from "js-base64";
 import { CreditCardIcon, PlayCircleIcon } from "@heroicons/react/24/solid";
 
+export interface ReadyProps {
+    payWithPayPhone: string, payWithCard: string, isReady: boolean
+}
 
 export interface PayphoneButtonProps {
     reference: string,
     order: SimpleOrderProps,
-    onApprove?: Function,
-    onSuccess?: Function,
-    onReady?: Function,
-    catchError?: Function,
-    onError?: Function,
-    createOrder?: Function,
+    onApprove?: (data: any, amount: number|string) => void,
+    onReady?: (data: ReadyProps) => void,
+    onError?: (err: any) => void,
+    createOrder?: (context: any) => any,
     className?: string,
     options: PayphoneButtonOptions,
 }
@@ -140,7 +141,7 @@ class PayphoneButton extends React.Component<PayphoneButtonProps, PayphoneButton
             const { transactionId, amount, amountWithTax = 0, amountWithoutTax = 0, tax = 0, email } = order;
 
             //Verificar if desea armar orden completa
-            if(createOrder){
+            if (createOrder) {
                 fullOrder = createOrder(this);
             }
 
@@ -206,7 +207,7 @@ class PayphoneButton extends React.Component<PayphoneButtonProps, PayphoneButton
         }
 
         return (
-            <div className={"payphone-btns " + this.props.className}>
+            <div className={"payphone-btns " + (this.props.className??"")}>
                 <Button id="btn-credit-card" link={this.state.payWithCard} caption="PAGAR CON TARJETA DE CREDITO" title="Pagar con T/C">
                     <CreditCardIcon />
                 </Button>

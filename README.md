@@ -42,4 +42,4 @@ class Example extends Component {
 
 ## License
 
-MIT © [djasc1993](https://github.com/djasc1993)
+MIT © [royaltics-solutions](https://github.com/royaltics-solutions)
