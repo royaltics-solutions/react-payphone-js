@@ -15,27 +15,27 @@ npm install --save react-payphone-js
 ```tsx
 import React, { Component } from 'react'
 
-import {PayphoneButton} from 'react-payphone-js'
+import PayphoneButton from 'react-payphone-js'
 import 'react-payphone-js/dist/index.css'
 
 class Example extends Component {
   render() {
     return <PayphoneButton reference='React Payphone Plataform'
-                        order={{
-                          amount: 10,
-                          amountWithoutTax: 10,
-                          currency: "USD",
-                          email: "asdas@gmail.com",
-                          documentId: "1",
-                          phoneNumber: "+593968452XXX"
-                        }}
-                        options={{
-                          token: "yqweqweqwe......",
-                          responseUrl: "http://react-payphone.com/onsuccess",
-                          cancellationUrl: undefined,
-                          disableCard: false,
-                          debug: true
-                        }} />
+            order={{
+              amount: 10,
+              amountWithoutTax: 10,
+              currency: "USD",
+              email: "example@gmail.com",
+              documentId: "1",
+              phoneNumber: "+593968452XXX"
+            }}
+            options={{
+              token: "......",
+              responseUrl: "http://react-payphone.com/onsuccess",
+              cancellationUrl: undefined,
+              disableCard: false,
+              debug: true
+            }} />
   }
 }
 ```

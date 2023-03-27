@@ -21,7 +21,7 @@ const Http = async (api_url: string, data: any = {}, method: 'GET' | 'POST'  = '
 					params += key + "=" + data[key] + "&";
 			})
 		}
-
+ 
 
 		//credentials: "include",
 		const res = await fetch(api_url + params, { method: method, ...params_post, headers: headers });

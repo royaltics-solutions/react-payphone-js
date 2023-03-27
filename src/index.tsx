@@ -44,13 +44,14 @@ export interface PayphoneButtonOptions {
     debug?: boolean,
     responseUrl: string,
     cancellationUrl?: string,
+    popup?: boolean,
 }
 
 export interface PayphoneButtonState {
-    isReady: boolean,
-    payWithPayPhone: string,
-    payWithCard: string,
-    transaction_id: number,
+    isReady?: boolean,
+    payWithPayPhone?: string,
+    payWithCard?: string,
+    transaction_id?: number,
     clientTransactionId?: string | null,
 }
 
@@ -78,98 +79,95 @@ export interface OrderDetails {
     productSKU: string,
 }
 
-class PayphoneButton extends React.Component<PayphoneButtonProps, PayphoneButtonState> {
+const PayphoneButton = (props: PayphoneButtonProps) => {
+
+    const [state, setState] = React.useState<PayphoneButtonState>({
+        isReady: false,
+        payWithPayPhone: "",
+        payWithCard: "",
+        transaction_id: 0,
+    })
 
 
-    static defaultProps = {
-        style: {},
-        options: {
-            currency: "USD"
-        },
-    }
-
-    constructor(props: PayphoneButtonProps) {
-        super(props);
-        this.state = {
-            isReady: false,
-            payWithPayPhone: "",
-            payWithCard: "",
-            transaction_id: 0,
-        };
-    }
-
-    componentDidMount() {
+    React.useEffect(() => {
         if (typeof window !== "undefined" && window !== undefined) {
-
+            if (props.options.debug) console.log(props);
             //Get Urls form show buttons
-            if (!this.state.isReady) {
-                this.sendRequestPayphone();
-            }
+            requestPayphoneUrl();
 
             //Verify Status Transaction Payphone
-            const query = new URL(window.location.href).searchParams;
-            if (query && query.get("clientTransactionId") != null) {
-
-                this.setState({
-                    transaction_id: parseInt(query.get("id") ?? "0"),
-                    clientTransactionId: query.get("clientTransactionId"),
-                })
-
-                //Get confirm Status 
-                Http(config.apiHost + '/button/Confirm', {
-                    id: query.get("id"),
-                    clientTransactionId: query.get("clientTransactionId")
-                }, 'POST', (resp) => {
-
-                    if (this.props.options.debug) console.log(resp);
-
-                    //SuccessFul
-                    if (resp.clientTransactionId) {
-
-                        if (this.props.onApprove) this.props.onApprove(resp,  resp.amount / 100);
-
-                    } else {
-
-                        if (this.props.onError) this.props.onError("Ah ocurrido un error " + resp.message)
-                    }
-
-                }, { Authorization: "Bearer " + this.props.options?.token, 'Content-Type': 'application/json' }).catch(err => {
-
-                    if (this.props.options.debug) console.log(err);
-                    if (this.props.onError) this.props.onError(err)
-
-                })
+            if (!props.options.popup) {
+                const query = new URL(window.location.href).searchParams;
+                getVerifyTranssaction(query, true)
             }
         }
+    }, [props.order.amount]);
 
+    const getVerifyTranssaction = (query: URLSearchParams, onMount?: boolean) => {
+        if (props.options.debug) console.log("Consultando, estado de transaccion", query, "clientTransactionId", query.get("clientTransactionId"), "id", query.get("id"))
 
+        if (query && query.get("clientTransactionId") != null) {
+
+            setState({
+                transaction_id: parseInt(query.get("id") ?? "0"),
+                clientTransactionId: query.get("clientTransactionId"),
+            })
+
+            //Get confirm Status 
+            Http(config.apiHost + '/button/Confirm', {
+                id: query.get("id"),
+                clientTransactionId: query.get("clientTransactionId")
+            }, 'POST', (resp) => {
+
+                if (props.options.debug) console.log(resp);
+
+                //SuccessFul
+                if (resp.clientTransactionId) {
+
+                    if (props.onApprove) props.onApprove(resp, resp.amount / 100);
+
+                } else {
+
+                    if (props.onError) props.onError("Ah ocurrido un error " + resp.message)
+                }
+
+            }, { Authorization: "Bearer " + props.options?.token, 'Content-Type': 'application/json' }).catch(err => {
+
+                if (props.options.debug) console.log(err);
+                if (props.onError) props.onError(err)
+
+            })
+        } else if (!onMount) {
+            if (props.onError) props.onError("PayphoneButton => Ah ocurrido un error Query retornado Invalido " + query)
+        }
     }
 
-    create(order: Order, details: OrderDetails[]) {
-        //const { currency, options, amount } = this.props;
+    const create = (order: Order, details: OrderDetails[]) => {
+        //const { currency, options, amount } = props;
         return {
             billTo: order,
             lineItems: details
         };
     }
 
-    sendRequestPayphone() {
-        const { responseUrl, cancellationUrl } = this.props.options;
-        const { reference, onReady, onError, options, order, createOrder } = this.props;
+    const requestPayphoneUrl = () => {
+        const { responseUrl, cancellationUrl } = props.options;
+        const { reference, onReady, onError, options, order, createOrder } = props;
         if (order) {
             let fullOrder = undefined;
             const { transactionId, amount, amountWithTax = 0, amountWithoutTax = 0, tax = 0, email } = order;
 
             //Verificar if desea armar orden completa
             if (createOrder) {
-                fullOrder = createOrder(this);
+                fullOrder = createOrder(create);
+
             }
 
             Http(config.apiHost + '/button/Prepare', {
-                amount: Math.ceil(amount * 100),
-                amountWithoutTax: Math.ceil(amountWithoutTax * 100),
-                amountWithTax: Math.ceil(amountWithTax * 100),
-                tax: Math.floor(tax * 100),
+                amount: (amount * 100).toFixed(0),
+                amountWithoutTax: (amountWithoutTax * 100).toFixed(0),
+                amountWithTax: (amountWithTax * 100).toFixed(0),
+                tax: (tax * 100).toFixed(0),
                 clientTransactionId: transactionId || Base64.encode(new Date().getTime().toString()),
                 reference: reference,
                 responseUrl: responseUrl,
@@ -188,7 +186,7 @@ class PayphoneButton extends React.Component<PayphoneButtonProps, PayphoneButton
                             isReady: true,
                         });
                     }
-                    this.setState({
+                    setState({
                         payWithPayPhone: resp.payWithPayPhone,
                         payWithCard: resp.payWithCard,
                         isReady: true
@@ -207,40 +205,74 @@ class PayphoneButton extends React.Component<PayphoneButtonProps, PayphoneButton
         }
     }
 
-    openWindowPayphone(url: string) {
-        window.location.href = url;
+    const openWindowPayphone = (url: string) => {
+        const { popup, debug, responseUrl, } = props.options;
+
+        if (popup) {
+
+            if (debug) console.log("Open popup Windows for ", url);
+
+            const win = window.open(url, "socialPopupWindow", `scrollbars=no,resizable=no,status=no,location=no,toolbar=no,menubar=no,width=0,height=0`);
+            if (win) {
+
+                win.focus();
+
+                var timerPayphone = setInterval(function () {
+                    try {
+                        if (win.location.search?.includes("clientTransactionId=")) {
+                            win.close();
+                            clearInterval(timerPayphone);
+                            const searchParams = new URLSearchParams(win.location.search);
+                            getVerifyTranssaction(searchParams);
+                        } else if (win.location.href?.includes(responseUrl)) {
+                            win.close();
+                            clearInterval(timerPayphone);
+                            if (debug) console.log(win.location.href, "Error no se ha recibido clientTransactionId en el query");
+                            if (props.onError) props.onError("Error no se ha recibido clientTransactionId en el query");
+                        }
+                    } catch (err) {
+                        if (debug) console.log(err);
+                    }
+                }, 1000);
+
+
+
+            }
+        } else {
+            window.location.href = url;
+        }
+
     }
 
 
-    render() {
+    const { isReady } = state;
 
-        const { isReady } = this.state;
+    if (!isReady || typeof window === "undefined") {
+        return null;
+    }
 
-        if (!isReady || typeof window === "undefined") {
-            return null;
-        }
-
-        const Button = (props: any) => {
-            return (
-                <button id={props.id} onClick={() => this.openWindowPayphone(props.link)} title={props.title} disabled={this.props.options.disableCard}>
-                    {props.children}
-                    <span>{props.caption}</span>
-                </button>
-            )
-        }
-
+    const Button = ({ link, caption, id, children, title }: any) => {
         return (
-            <div className={"payphone-btns " + (this.props.className ?? "")}>
-                <Button id="btn-credit-card" link={this.state.payWithCard} caption="PAGAR CON TARJETA DE CREDITO" title="Pagar con T/C">
+            <button id={id} onClick={() => openWindowPayphone(link)} title={title} disabled={props.options.disableCard}>
+                {children}
+                <span>{caption}</span>
+            </button>
+        )
+    }
+
+
+    return state.isReady ?
+        <div className={"payphone-btns " + (props.className ?? "")}>
+            <div>
+                <Button id="btn-credit-card" link={state.payWithCard} caption="PAGAR CON TARJETA DE CREDITO" title="Pagar con T/C">
                     <CreditCardIcon />
                 </Button>
-                <Button id="btn-payphone-balance" link={this.state.payWithPayPhone} caption="PAGAR CON SALDO PAYPHONE" title="Pagar con Saldo Payphone">
+                <Button id="btn-payphone-balance" link={state.payWithPayPhone} caption="PAGAR CON SALDO PAYPHONE" title="Pagar con Saldo Payphone">
                     <PlayCircleIcon />
                 </Button>
             </div>
-        );
-    }
+        </div> : <div></div>
 
 }
 
-export { PayphoneButton };
+export default PayphoneButton;

@@ -1,6 +1,6 @@
 import React from 'react'
 
-import { PayphoneButton } from 'react-payphone-js'
+import PayphoneButton  from 'react-payphone-js'
 import 'react-payphone-js/dist/index.css'
 
 const App = () => {
