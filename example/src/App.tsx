@@ -1,7 +1,7 @@
 import React from 'react'
 
 import PayphoneButton  from 'react-payphone-js'
-import 'react-payphone-js/dist/index.css'
+import 'react-payphone-js/dist/style.css'
 
 const App = () => {
   return <PayphoneButton reference='React Payphone Plataform'

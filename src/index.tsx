@@ -1,5 +1,5 @@
 import * as React from 'react'
-import "./styles.module.css";
+import "./styles.css";
 import Http from "./lib/Http";
 import { Base64 } from "js-base64";
 import { CreditCardIcon, PlayCircleIcon } from "@heroicons/react/24/solid";
