@@ -1,6 +1,6 @@
 {
     "name": "react-payphone-js",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "description": "A Button react.js for payphone checkout",
     "type": "module",
     "author": {
@@ -18,15 +18,14 @@
     "license": "MIT",
     "repository": "https://github.com/royaltics-solutions/react-payphone-js.git",
     "main": "dist/index.js",
-    "module": "dist/index.modern.js",
+    "module": "dist/index.umd.cjs",
     "source": "src/index.tsx",
     "types": "./dist/main.d.ts",
     "exports": {
         ".": {
-            "import": "./dist/react-payphone-js.js",
-            "require": "./dist/react-payphone-js.umd.cjs"
-        },
-        "./dist/style.css": "./dist/react-payphone-js.css"
+            "import": "./dist/index.js",
+            "require": "./dist/index.umd.cjs"
+        }
     },
     "sideEffects": false,
     "engines": {

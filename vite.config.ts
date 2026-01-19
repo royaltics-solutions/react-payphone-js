@@ -15,8 +15,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: './src/index.tsx',
-      name: 'react-payphone-js',
-      fileName: 'react-payphone-js'
+      name: 'index',
+      fileName: 'index'
     },
     rollupOptions: {
       external: ['react', 'react-dom', 'react/jsx-runtime'],
