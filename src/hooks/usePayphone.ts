@@ -15,7 +15,7 @@ export const usePayphone = (defaultProps?: Partial<PayphoneProps>) => {
      * Can override props passed to the hook.
      */
     const pay = useCallback(async (overrideProps?: Partial<PayphoneProps>) => {
-        const props = { ...defaultProps, ...overrideProps } as PayphoneProps;
+        const props = { popup: true, ...defaultProps, ...overrideProps } as PayphoneProps;
 
         if (!props.token || !props.storeId) {
             setState({ isLoading: false, error: "Missing required configuration (token or storeId)" });

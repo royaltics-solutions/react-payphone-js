@@ -115,7 +115,9 @@ export interface PayphoneProps {
     responseUrl: string;
 
 
-    /** If true, opens the payment link in a new popup window instead of redirecting */
+    /** If true, opens the payment link in a new popup window instead of redirecting
+     * Default: true
+     */
     popup?: boolean;
 
     /** 
