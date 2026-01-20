@@ -40,10 +40,19 @@ export interface PayphoneApiRequest {
 /**
  * structure for the response from Payphone prepare link
  */
-export interface PayphoneApiResponse {
+export interface PayphonePrepareApiResponse {
     paymentId: string;
     payWithCard: string;
     payWithPayPhone: string;
+}
+
+
+export interface PayphonePaymentApiResponse {
+    id: string | null;
+    clientTransactionId: string;
+    transactionStatus: string;
+
+    msg?: string | null;
 }
 
 
@@ -55,7 +64,7 @@ export interface PayphoneApiResponse {
 export interface PayphoneProps {
     /** API Token */
     token: string;
-    
+
     /** Total amount in USD (e.g. 10.50). If not provided, will be calculated from subcomponents if possible. */
     amount: number;
     /** Amount not subject to tax (0% VAT) in USD. */
@@ -70,22 +79,22 @@ export interface PayphoneProps {
     tipValue?: number; // Friendly name for tip
 
     /** Standard ISO Currency */
-    currency?: string; 
-    
+    currency?: string;
+
     /** Payment reference/description */
     reference: string;
     /** Unique ID for transaction. If not provided, one will be generated. */
     transactionId?: string; // Friendly name for clientTransactionId
-    
+
     /** Store Identifier */
     storeId: string;
-    
+
     /** Any extra data string */
     extraData?: string; // Friendly name for additionalData
-    
+
     /** If true, the link expires after one successful payment */
     singleUse?: boolean; // Friendly name for oneTime
-    
+
     /** Expiration time in minutes? Or hours? API says hours usually. Let's document as hours. */
     expireHours?: number; // Friendly name for expireIn
 
@@ -94,10 +103,10 @@ export interface PayphoneProps {
 
     /** Callback when payment flow is completed (success or failure mechanism depends on implementation) */
     /** Callback when payment link is prepared (optional) */
-    onPreparated?: (response: PayphoneApiResponse) => void;
+    onPreparated?: (response: PayphonePrepareApiResponse) => void;
 
     /** Callback when payment link is generated and process starts. (Legacy onCompletion usage) */
-    onPayment?: (response: PayphoneApiResponse) => void;
+    onPayment?: (response: PayphonePaymentApiResponse) => void;
 
     /** Callback when payment is confirmed (via auto-confirm) */
     onConfirm?: (response: PayphoneConfirmResponse) => void;

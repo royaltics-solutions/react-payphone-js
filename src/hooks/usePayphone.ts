@@ -60,13 +60,24 @@ export const usePayphone = (defaultProps?: Partial<PayphoneProps>) => {
                                     const url = new URL(currentUrl);
                                     const id = url.searchParams.get('id');
                                     const clientTxId = url.searchParams.get('clientTransactionId');
+                                    const msg = url.searchParams.get('msg');
 
                                     if (id || clientTxId) {
                                         popup.close();
                                         clearInterval(timer);
 
-                                        if (props.onPayment) {
-                                            props.onPayment(response);
+                                        if (msg) {
+                                            if (props.onError) props.onError({ message: msg });
+                                            return;
+                                        }
+
+                                        if (props.onPayment && clientTxId) {
+                                            props.onPayment({
+                                                id,
+                                                clientTransactionId: clientTxId,
+                                                msg,
+                                                transactionStatus: 'Pending'
+                                            });
                                         }
 
                                         const autoConfirm = props.autoConfirm !== false;
@@ -84,10 +95,7 @@ export const usePayphone = (defaultProps?: Partial<PayphoneProps>) => {
 
                                                 })
                                                 .catch((err) => {
-                                                    console.error("Auto-confirm failed", err);
-                                                    if (props.onError) {
-                                                        props.onError(err);
-                                                    }
+                                                    if (props.onError) props.onError(err);
                                                 });
                                         }
                                     }

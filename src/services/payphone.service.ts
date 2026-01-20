@@ -1,4 +1,4 @@
-import { PayphoneApiRequest, PayphoneApiResponse, PayphoneProps } from "../types";
+import { PayphoneApiRequest,  PayphonePrepareApiResponse, PayphoneProps } from "../types";
 import { toCents, generateId } from "../utils/math";
 
 export class PayphoneService {
@@ -68,7 +68,7 @@ export class PayphoneService {
     /**
      * Calls the Payphone API to generate a payment link.
      */
-    static async createPaymentLink(props: PayphoneProps): Promise<PayphoneApiResponse> {
+    static async createPaymentLink(props: PayphoneProps): Promise<PayphonePrepareApiResponse> {
         const requestData = this.prepareRequestData(props);
 
         if (!requestData.responseUrl) throw new Error("responseUrl is required");
